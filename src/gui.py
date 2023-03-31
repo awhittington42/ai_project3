@@ -233,6 +233,15 @@ class ProjectGui:
             prev_item = item
         ProjectGui.user_preferences = lastSplit
 
+    def objectBuilder():
+        objects = []
+
+        for a in ProjectGui.attributes:
+            if ProjectGui.attributes.index(a) % 3 == 0:
+                #Then this is a attribute type, and the following two indices are its binary values.
+
+
+
 
 
 
