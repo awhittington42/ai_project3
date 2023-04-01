@@ -9,7 +9,9 @@ class ProjectGui:
 
     user_attributes = []
     user_constraints = []
-    user_preferences = []
+    penalty_preferences = []
+    possi_preferences = []
+    quali_preferences = []
 
     def createinstance(self):
         print("createinstance invoked!")
@@ -18,19 +20,30 @@ class ProjectGui:
         self.mainframe = tk.Frame(self.root)
         self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
         self.createInstanceTextVar = StringVar(value ="Create Instance")
-        self.createInstanceBtn = tk.Button(self.mainframe, textvariable=self.createInstanceTextVar, command=self.createinstance).grid(row=0, column=0, sticky=(W, E))
+        self.createInstanceBtn = tk.Button(self.mainframe, textvariable=self.createInstanceTextVar, command=self.createinstance)
+        self.createInstanceBtn.grid(row=0, column=0, sticky=(W, E))
         self.loadInstanceTextVar = StringVar(value = "Load Instance")
-        self.loadInstanceBtn = tk.Button(self.mainframe, textvariable=self.loadInstanceTextVar, command=self.loadinstance).grid(row=1, column=0, sticky=(W, E))
-        quitButton = tk.Button(self.mainframe, text='Quit', command=ProjectGui.quitgui).grid(row=2, column=0, sticky=(W, W))
-        self.instanceLabel = tk.Label(self.mainframe, text='Current Instance --> ').grid(row=3, column=0, sticky=(W, E))
+        self.loadInstanceBtn = tk.Button(self.mainframe, textvariable=self.loadInstanceTextVar, command=self.loadinstance)
+        self.loadInstanceBtn.grid(row=1, column=0, sticky=(W, E))
+        quitButton = tk.Button(self.mainframe, text='Quit', command=ProjectGui.quitgui)
+        quitButton.grid(row=2, column=0, sticky=(W, W))
+        self.instanceLabelTextVar = StringVar(value = "Current Instance: ")
+        self.instanceLabel = tk.Label(self.mainframe, textvariable=self.instanceLabelTextVar)
+        self.instanceLabel.grid(row=3, column=0, sticky=(W, E))
         self.existenceButton = tk.Button(self.mainframe, text='Existence', command=self.existence)
         self.exempButton = tk.Button(self.mainframe, text='Exemplification', command=self.exemp)
         self.optimizeButton = tk.Button(self.mainframe, text='(Omni)optimization', command=self.optimize)
-        self.instanceInfo = StringVar(value="No Instance Detected")
-        self.instanceText = tk.Label(self.mainframe, textvariable=self.instanceInfo).grid(row=3, column=1, sticky=(W, E))
+        self.instanceInfo = StringVar(self.mainframe, value="No Instance Detected")
+        self.instanceText = tk.Label(self.mainframe, textvariable=self.instanceInfo)
+        self.instanceText.grid(row=3, column=1, sticky=(N, W, E, S))
 
     def loadinstance(self):
         print("loadinstance called!")
+        self.existenceButton.grid_forget()
+        self.exempButton.grid_forget()
+        self.optimizeButton.grid_forget()
+        self.instanceLabel.grid_forget()
+        self.instanceText.grid_forget()
         self.loadInstanceTextVar.set("Enter Filename & click me.")
         self.fname = StringVar()
         self.fname_entry = tk.Entry(self.mainframe, width=10, textvariable=self.fname)
@@ -39,6 +52,80 @@ class ProjectGui:
         self.fname_entry.grid(row=1, column=0, sticky=(W, E))
         self.createInstanceTextVar.set("Enter attribute filename below")
         #self.root.bind("<Return>", lambda: self.parseAttributes(fname))
+
+    def instanceLoaded(self):
+        self.fname_entry.delete(0, END)
+        self.loadInstanceTextVar.set("Load New Instance")
+        self.loadInstanceBtn = tk.Button(self.mainframe, textvariable=self.loadInstanceTextVar, command=self.loadinstance).grid(row=1, column=0, sticky=(W,E))
+        self.createInstanceTextVar.set("Create New Instance")
+        self.createInstanceBtn = tk.Button(self.mainframe, textvariable=self.createInstanceTextVar, command=self.createinstance).grid(row=0, column=0, sticky=(W,E))
+        self.pref_label.grid_forget()
+        self.pref_type1.grid_forget()
+        self.pref_type2.grid_forget()
+        self.pref_type3.grid_forget()
+        self.existenceButton.grid(row=0, column=1, sticky=(W,E))
+        self.exempButton.grid(row=1, column=1, sticky=(W,E))
+        self.optimizeButton.grid(row=2, column=1, sticky=(W,E))
+        self.updateInstanceInfo()
+
+    def updateInstanceInfo(self):
+        info = []
+        attCount = 0
+        info.append("Attributes")
+        #want to have attributes listed, number of objects, etc..
+        for a in ProjectGui.user_attributes:
+            if ProjectGui.user_attributes.index(a) % 3 == 0:
+                attCount += 1
+                info.append(a)
+
+        #now we have all attributes housed in list, with "Attributes" preceeding
+        #now add constraints info
+        info.append("Constraints")
+        for c in ProjectGui.user_constraints:
+            info.append(c)
+
+        #now time to gather preference info.
+        info.append("Penalty Logic")
+        for p in ProjectGui.penalty_preferences:
+            info.append(p)
+        info.append("Possibilistic Logic")
+        for i in ProjectGui.possi_preferences:
+            info.append(p)
+        info.append("Qualitative Choice Logic")
+        for q in ProjectGui.quali_preferences:
+            info.append(q)
+
+        #Now populate bottom of Gui with info.
+        holderString1 = ""
+        string2 = False
+        holderString2 = ""
+        for item in info:
+            if type(item) == list:
+                for x in item:
+                    if string2:
+                        holderString2 += x + ","
+                    else:
+                        holderString1 += x + ","
+            elif item == "Attributes" or item == "Constraints":
+                holderString1 += "\n" + item
+                holderString1 += ":\n"
+            elif item == "Penalty Logic":
+                string2 = True
+                holderString2 += "\n" + item
+                holderString2 += ":\n"
+            elif item == "Possibilistic Logic" or item == "Qualitative Choice Logic":
+                holderString2 += "\n" + item
+                holderString2 += ":\n"
+            elif string2:
+                holderString2 += item + ", "
+            else:
+                holderString1 += item + ", "
+
+        self.instanceLabelTextVar.set(holderString1)
+        self.instanceInfo.set(holderString2)
+        self.instanceText.grid(row=3, column=1, sticky=(N,W,E,S))
+        self.instanceLabel.grid(row=3, column=0, sticky=(N,W,E,S))
+
 
     def quitgui():
         print("quitgui called!")
@@ -130,26 +217,29 @@ class ProjectGui:
     def parsePreferences(self):
         fName = self.fname.get()
         preferences = []
-        choice = 0
+        self.choice = tk.IntVar()
         #First, need to check and see what kind of preference file we're using.
-        pref_label = tk.Label(self.mainframe, text="Please Select Preference Type of File").grid(row=0, column=1, sticky=(W, E))
-        pref_type1 = tk.Radiobutton(self.mainframe, text="Penalty Logic", variable=choice, value=1, command=self.parsePenalty).grid(row=1, column=1, sticky=(W, E))
-        pref_type2 = tk.Radiobutton(self.mainframe, text="Possibilistic Logic", variable=choice, value=2, command=self.parsePossibilistic).grid(row=2, column=1, sticky=(E, W))
-        pref_type3 = tk.Radiobutton(self.mainframe, text="Qualitative Choice Logic", variable=choice, value=3, command=self.parseQualitative).grid(row=3, column=1, sticky=(W, E))
+        self.pref_label = tk.Label(self.mainframe, text="Please Select Preference Type of File")
+        self.pref_label.grid(row=0, column=1, sticky=(W, E))
+        self.pref_type1 = tk.Radiobutton(self.mainframe, text="Penalty Logic", variable=self.choice, value=1, command=self.preferenceType)
+        self.pref_type1.grid(row=1, column=1, sticky=(W, E))
+        self.pref_type2 = tk.Radiobutton(self.mainframe, text="Possibilistic Logic", variable=self.choice, value=2, command=self.preferenceType)
+        self.pref_type2.grid(row=2, column=1, sticky=(E, W))
+        self.pref_type3 = tk.Radiobutton(self.mainframe, text="Qualitative Choice Logic", variable=self.choice, value=3, command=self.preferenceType)
+        self.pref_type3.grid(row=3, column=1, sticky=(W, E))
 
+    def preferenceType(self):
         print("successfully reached parsePreferences")
-
-        if choice == 0:
-            print("Error, please ensure you select a preference type from the options.")
-        elif choice == 1:
+        user_choice = self.choice.get()
+        if user_choice == 1:
             print("Penalty logic selected")
-        elif choice == 2:
+            self.parsePenalty()
+        elif user_choice == 2:
             print("Possibilistic logic selected")
-        elif choice == 3:
+            self.parsePossibilistic()
+        elif user_choice == 3:
             print("Qualitative choice logic selected")
-        else:
-            print("Error - Unexpected preference choice detected.")
-            sys.exit(-1)
+            self.parseQualitative()
 
     def parsePenalty(self):
         fName = self.fname.get()
@@ -166,8 +256,9 @@ class ProjectGui:
                 temp = rawPenalty[1].strip()
                 rawPenalty[1] = temp
                 print(rawPenalty)
-                ProjectGui.user_preferences.append(rawPenalty)
-        print(ProjectGui.user_preferences)
+                ProjectGui.penalty_preferences.append(rawPenalty)
+        print(ProjectGui.penalty_preferences)
+        self.objectsBuilder()
 
     def parsePossibilistic(self):
         fName = self.fname.get()
@@ -183,8 +274,9 @@ class ProjectGui:
                 print(rawPoss)
                 temp = rawPoss[1].strip()
                 rawPoss[1] = temp
-                ProjectGui.user_preferences.append(rawPoss)
-            print(ProjectGui.user_preferences)
+                ProjectGui.possi_preferences.append(rawPoss)
+        print(ProjectGui.possi_preferences)
+        self.objectsBuilder()
 
 
     def parseQualitative(self):
@@ -204,10 +296,12 @@ class ProjectGui:
                 tempQual = []
                 for i in rawQual:
                     tempQual.append(i.strip())
-                ProjectGui.user_preferences.append(tempQual)
-        print(ProjectGui.user_preferences)
-        ProjectGui.splitList(ProjectGui.user_preferences)
-        print(ProjectGui.user_preferences)
+                ProjectGui.quali_preferences.append(tempQual)
+        print(ProjectGui.quali_preferences)
+        ProjectGui.splitList(ProjectGui.quali_preferences)
+        print(ProjectGui.quali_preferences)
+        self.objectsBuilder()
+
 
     def splitList(l):
         temp = []
@@ -234,10 +328,18 @@ class ProjectGui:
             prev_item = item
         ProjectGui.user_preferences = lastSplit
 
-    def objectBuilder():
-        objects = []
+    def objectsBuilder(self):
+        category_counter = 0
+        for a in ProjectGui.user_attributes:
+            if ProjectGui.user_attributes.index(a) % 3 == 0:
+                category_counter += 1
+        print("Number of attributes: " + str(category_counter))
+        print("Using itertools to build out all combinations.")
+        
+        combinations = [seq for seq in itertools.product((True, False), repeat = category_counter)]
+        print("Combinations generated, now printing: \n")
+        print(combinations)
+        #Can use itertools.product to yield a list of tuples with all the binary combos needed. Then I can map them to each object created.
 
-        for a in ProjectGui.attributes:
-            if ProjectGui.attributes.index(a) % 3 == 0:
-                #Then this is a attribute type, and the following two indices are its binary values.
-                #Can use itertools.product to yield a list of tuples with all the binary combos needed. Then I can map them to each object created.
+        ProjectGui.allObjects = combinations
+        self.instanceLoaded()
