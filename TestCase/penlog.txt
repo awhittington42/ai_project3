@@ -1,0 +1,3 @@
+beef AND red, 6
+white AND chicken, 5
+michelob or diet, 7

@@ -1,0 +1,8 @@
+pizza: cheese, pepperoni
+beer: miller, michelob
+wine: red, white
+soda: diet, normal
+water: bottled, tap
+side: fries, chips
+main: chicken, beef
+dessert: tiramisu, custard

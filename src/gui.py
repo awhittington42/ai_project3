@@ -4,6 +4,8 @@ import sys
 import os
 import fnmatch
 import itertools
+import attribute
+
 sys.path.append("..")
 class ProjectGui:
 
@@ -16,6 +18,14 @@ class ProjectGui:
 
     def createinstance(self):
         print("createinstance invoked!")
+
+    def clean():
+        ProjectGui.allObjects = []
+        ProjectGui.user_attributes = []
+        ProjectGui.user_constraints = []
+        ProjectGui.penalty_preferences = []
+        ProjectGui.possi_preferences = []
+        ProjectGui.quali_preferences = []
 
     def loadWidgets(self, root):
         self.mainframe = tk.Frame(self.root)
@@ -40,6 +50,7 @@ class ProjectGui:
 
     def loadinstance(self):
         print("loadinstance called!")
+        ProjectGui.clean()
         self.existenceButton.grid_forget()
         self.exempButton.grid_forget()
         self.optimizeButton.grid_forget()
@@ -73,6 +84,15 @@ class ProjectGui:
         self.exempButton.grid(row=1, column=1, sticky=(W,E))
         self.optimizeButton.grid(row=2, column=1, sticky=(W,E))
         self.updateInstanceInfo()
+
+        #reversing order of combos so it starts with 0/false.
+        temp = []
+        ctr = len(ProjectGui.allObjects) - 1
+        while ctr >= 0:
+            temp.append(ProjectGui.allObjects[ctr])
+            ctr -= 1
+        ProjectGui.allObjects = temp
+        print(ProjectGui.allObjects)
 
     def updateInstanceInfo(self):
         info = []
@@ -109,9 +129,9 @@ class ProjectGui:
             if type(item) == list:
                 for x in item:
                     if string2:
-                        holderString2 += x + ","
+                        holderString2 += x
                     else:
-                        holderString1 += x + ","
+                        holderString1 += x
             elif item == "Attributes" or item == "Constraints":
                 holderString1 += "\n" + item
                 holderString1 += ":\n"
@@ -120,6 +140,7 @@ class ProjectGui:
                 holderString2 += "\n" + item
                 holderString2 += ":\n"
             elif item == "Possibilistic Logic" or item == "Qualitative Choice Logic":
+                string2 = True
                 holderString2 += "\n" + item
                 holderString2 += ":\n"
             elif string2:
@@ -128,8 +149,8 @@ class ProjectGui:
                 holderString1 += item + ", "
 
         self.instanceLabelTextVar.set(holderString1)
-        self.instanceInfo.set(holderString2)
-        self.instanceText.grid(row=3, column=1, sticky=(N,W,E,S))
+        #self.instanceInfo.set(holderString2)
+        #self.instanceText.grid(row=3, column=1, sticky=(N,W,E,S))
         self.instanceLabel.grid(row=3, column=0, sticky=(N,W,E,S))
 
 
@@ -139,8 +160,43 @@ class ProjectGui:
 
     def existence(self):
         print("existence called!")
+        """
         # existence means figure out what objects out of all possible combos satisfy
         # the constraints.
+        # So I need to begin by taking in the constraints and actually parsing them.
+        # Need to add functionality to recognize logic and NOT etc...
+        # Raw idea: Go through the object list, and assign the truth value of each
+        # tuple index to their respective attribute type. So in this 3 attribute
+        # example, we have dissert correspond to first tuple index, drink will be
+        the 2nd tuple index, and main will be the third. Go through each tuple and 
+        build out a comparison between the truth values of each attribute, and the
+        constraints. This means the program will need to recognize attribute names
+        and that a NOT in front of that attribute means False essentially.
+        """
+        attObjects = []
+        nameCtr = 0
+        atname = ""
+        temp = []
+        ctr = 0
+        #First I need to get the attributes and build out a list of attribute objcts
+        for a in ProjectGui.user_attributes:
+            if ctr == 2:
+                ctr = 0
+                at = attribute.attribute(temp, nameCtr - 1, atname)
+                attObjects.append(at)
+                #TODO attObjects is cutting off the last attribute, need to fix.
+                atname = ""
+            if ProjectGui.user_attributes.index(a) % 3 == 0:
+                atname += str(a)
+                nameCtr += 1
+            else:
+                temp.append(a)
+                ctr+= 1
+        for n in attObjects:
+            print(str(n.getName()))
+
+
+
 
     def exemp(self):
         print("exemp called!")
@@ -223,7 +279,7 @@ class ProjectGui:
                 rawConstraints = line.split("OR")
                 ProjectGui.user_constraints.append(rawConstraints)
 
-            print(ProjectGui.user_constraints)
+        print(ProjectGui.user_constraints)
 
         self.createInstanceTextVar.set("Now Enter Preferences filename:")
         self.loadInstanceBtn.configure(command=self.parsePreferences)

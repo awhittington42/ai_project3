@@ -1,0 +1,6 @@
+NOT fries OR diet
+NOT red OR NOT chicken
+NOT white OR NOT beef
+diet OR NOT custard
+NOT tap OR michelob
+NOT cheese OR NOT custard
