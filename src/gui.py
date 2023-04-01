@@ -3,6 +3,7 @@ import tkinter as tk
 import sys
 import os
 import fnmatch
+import itertools
 sys.path.append("..")
 class ProjectGui:
 
@@ -239,9 +240,4 @@ class ProjectGui:
         for a in ProjectGui.attributes:
             if ProjectGui.attributes.index(a) % 3 == 0:
                 #Then this is a attribute type, and the following two indices are its binary values.
-
-
-
-
-
-
+                #Can use itertools.product to yield a list of tuples with all the binary combos needed. Then I can map them to each object created.
