@@ -7,6 +7,7 @@ import itertools
 sys.path.append("..")
 class ProjectGui:
 
+    allObjects = []
     user_attributes = []
     user_constraints = []
     penalty_preferences = []
@@ -44,10 +45,12 @@ class ProjectGui:
         self.optimizeButton.grid_forget()
         self.instanceLabel.grid_forget()
         self.instanceText.grid_forget()
+        self.loadInstanceBtn.grid_forget()
         self.loadInstanceTextVar.set("Enter Filename & click me.")
         self.fname = StringVar()
         self.fname_entry = tk.Entry(self.mainframe, width=10, textvariable=self.fname)
-        self.loadInstanceBtn = tk.Button(self.mainframe, textvariable=self.loadInstanceTextVar, command=self.parseAttributes).grid(row=1, column=1, sticky=(W,E))
+        self.loadInstanceBtn.configure(command=self.parseAttributes)
+        self.loadInstanceBtn.grid(row=1, column=1, sticky=(W,E))
         self.fname_entry.focus()
         self.fname_entry.grid(row=1, column=0, sticky=(W, E))
         self.createInstanceTextVar.set("Enter attribute filename below")
@@ -55,14 +58,17 @@ class ProjectGui:
 
     def instanceLoaded(self):
         self.fname_entry.delete(0, END)
+        self.fname_entry.grid_forget()
+        self.loadInstanceBtn.grid_forget()
         self.loadInstanceTextVar.set("Load New Instance")
-        self.loadInstanceBtn = tk.Button(self.mainframe, textvariable=self.loadInstanceTextVar, command=self.loadinstance).grid(row=1, column=0, sticky=(W,E))
+        self.loadInstanceBtn.configure(command=self.loadinstance)
+        self.loadInstanceBtn.grid(row=1, column=0, sticky=(W,E))
         self.createInstanceTextVar.set("Create New Instance")
-        self.createInstanceBtn = tk.Button(self.mainframe, textvariable=self.createInstanceTextVar, command=self.createinstance).grid(row=0, column=0, sticky=(W,E))
-        self.pref_label.grid_forget()
-        self.pref_type1.grid_forget()
-        self.pref_type2.grid_forget()
-        self.pref_type3.grid_forget()
+        self.createInstanceBtn.grid(row=0, column=0, sticky=(W,E))
+        self.pref_label.destroy()
+        self.pref_type1.destroy()
+        self.pref_type2.destroy()
+        self.pref_type3.destroy()
         self.existenceButton.grid(row=0, column=1, sticky=(W,E))
         self.exempButton.grid(row=1, column=1, sticky=(W,E))
         self.optimizeButton.grid(row=2, column=1, sticky=(W,E))
@@ -133,12 +139,19 @@ class ProjectGui:
 
     def existence(self):
         print("existence called!")
+        # existence means figure out what objects out of all possible combos satisfy
+        # the constraints.
 
     def exemp(self):
         print("exemp called!")
+        # exemplification means to generate two random feasible objects, and
+        # then display the preference relationship between the two objects.
 
     def optimize(self):
         print("optimize called!")
+        # optimize is two buttons in one. So first need to get user input to see
+        # if user wants to just optimize, that is, find one optimal Object, or
+        # if user wants to omni-optimize, which means finding ALL optimal objects.
 
     #create initial frame and set up grid, to then create and place buttons within
     def __init__(self):
@@ -193,7 +206,8 @@ class ProjectGui:
 
         print(ProjectGui.user_attributes)
         self.createInstanceTextVar.set("Now Enter Constraints filename:")
-        self.loadInstanceBtn = tk.Button(self.mainframe, textvariable=self.loadInstanceTextVar, command=self.parseConstraints).grid(row=1, column=1, sticky=(W, E))
+        self.loadInstanceBtn.configure(command=self.parseConstraints)
+        #self.loadInstanceBtn.grid(row=1, column=1, sticky=(W, E))
 
     def parseConstraints(self):
         fName = self.fname.get()
@@ -212,21 +226,28 @@ class ProjectGui:
             print(ProjectGui.user_constraints)
 
         self.createInstanceTextVar.set("Now Enter Preferences filename:")
-        self.loadInstanceBtn = tk.Button(self.mainframe, textvariable=self.loadInstanceTextVar, command=self.parsePreferences).grid(row=1, column=1, sticky=(W, E))
+        self.loadInstanceBtn.configure(command=self.parsePreferences)
+        #self.loadInstanceBtn.grid(row=1, column=1, sticky=(W, E))
 
-    def parsePreferences(self):
+    def parsePreferences(self, flag=False):
         fName = self.fname.get()
         preferences = []
-        self.choice = tk.IntVar()
+        #self.choice = tk.IntVar()
         #First, need to check and see what kind of preference file we're using.
-        self.pref_label = tk.Label(self.mainframe, text="Please Select Preference Type of File")
-        self.pref_label.grid(row=0, column=1, sticky=(W, E))
-        self.pref_type1 = tk.Radiobutton(self.mainframe, text="Penalty Logic", variable=self.choice, value=1, command=self.preferenceType)
-        self.pref_type1.grid(row=1, column=1, sticky=(W, E))
-        self.pref_type2 = tk.Radiobutton(self.mainframe, text="Possibilistic Logic", variable=self.choice, value=2, command=self.preferenceType)
-        self.pref_type2.grid(row=2, column=1, sticky=(E, W))
-        self.pref_type3 = tk.Radiobutton(self.mainframe, text="Qualitative Choice Logic", variable=self.choice, value=3, command=self.preferenceType)
-        self.pref_type3.grid(row=3, column=1, sticky=(W, E))
+        #Check flag to see if getting the rest of preferences.
+        if flag:
+            self.pref_label.configure(text="Please select next preference file type after entering its filename.")
+            self.createInstanceTextVar.set("Please enter next preference filename.")
+        else:
+            self.choice = tk.IntVar()
+            self.pref_label = tk.Label(self.mainframe, text="Please Select Preference Type of File")
+            self.pref_label.grid(row=0, column=1, sticky=(W, E))
+            self.pref_type1 = tk.Radiobutton(self.mainframe, text="Penalty Logic", variable=self.choice, value=1, command=self.preferenceType)
+            self.pref_type1.grid(row=1, column=1, sticky=(W, E))
+            self.pref_type2 = tk.Radiobutton(self.mainframe, text="Possibilistic Logic", variable=self.choice, value=2, command=self.preferenceType)
+            self.pref_type2.grid(row=2, column=1, sticky=(E, W))
+            self.pref_type3 = tk.Radiobutton(self.mainframe, text="Qualitative Choice Logic", variable=self.choice, value=3, command=self.preferenceType)
+            self.pref_type3.grid(row=3, column=1, sticky=(W, E))
 
     def preferenceType(self):
         print("successfully reached parsePreferences")
@@ -342,4 +363,12 @@ class ProjectGui:
         #Can use itertools.product to yield a list of tuples with all the binary combos needed. Then I can map them to each object created.
 
         ProjectGui.allObjects = combinations
-        self.instanceLoaded()
+        if ProjectGui.penalty_preferences and ProjectGui.possi_preferences and ProjectGui.quali_preferences:
+            self.pref_label.grid_remove()
+            self.pref_type1.grid_remove()
+            self.pref_type2.grid_remove()
+            self.pref_type3.grid_remove()
+            self.instanceLoaded()
+        else:
+            self.choice.set(0)
+            self.parsePreferences(True)
