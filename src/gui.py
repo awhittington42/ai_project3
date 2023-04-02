@@ -5,6 +5,7 @@ import os
 import fnmatch
 import itertools
 import attribute
+import driver
 
 sys.path.append("..")
 class ProjectGui:
@@ -18,6 +19,24 @@ class ProjectGui:
 
     def createinstance(self):
         print("createinstance invoked!")
+
+    def getConstraints(self):
+        return ProjectGui.user_constraints
+
+    def getObjects(self):
+        return ProjectGui.allObjects
+
+    def getAttributes(self):
+        return ProjectGui.user_attributes
+
+    def getPenalty(self):
+        return ProjectGui.penalty_preferences
+
+    def getPoss(self):
+        return ProjectGui.possi_preferences
+
+    def getQual(self):
+        return ProjectGui.quali_preferences
 
     def clean():
         ProjectGui.allObjects = []
@@ -92,7 +111,7 @@ class ProjectGui:
             temp.append(ProjectGui.allObjects[ctr])
             ctr -= 1
         ProjectGui.allObjects = temp
-        print(ProjectGui.allObjects)
+        #print(ProjectGui.allObjects)
 
     def updateInstanceInfo(self):
         info = []
@@ -125,13 +144,19 @@ class ProjectGui:
         holderString1 = ""
         string2 = False
         holderString2 = ""
+        constraintCtr = 1
         for item in info:
             if type(item) == list:
                 for x in item:
                     if string2:
-                        holderString2 += x
+                        holderString2 += x + ", "
                     else:
-                        holderString1 += x
+                        if constraintCtr == 2:
+                            holderString1 += x + ", "
+                            constraintCtr = 1
+                        else:
+                            holderString1 += x + " OR "
+                            constraintCtr += 1
             elif item == "Attributes" or item == "Constraints":
                 holderString1 += "\n" + item
                 holderString1 += ":\n"
@@ -181,22 +206,169 @@ class ProjectGui:
         #First I need to get the attributes and build out a list of attribute objcts
         for a in ProjectGui.user_attributes:
             if ctr == 2:
-                ctr = 0
                 at = attribute.attribute(temp, nameCtr - 1, atname)
+                temp = []
+                print("Appending " + atname)
                 attObjects.append(at)
                 #TODO attObjects is cutting off the last attribute, need to fix.
                 atname = ""
+                ctr = 0
             if ProjectGui.user_attributes.index(a) % 3 == 0:
                 atname += str(a)
                 nameCtr += 1
             else:
+                print("Appending " + str(a) + " to temp")
                 temp.append(a)
                 ctr+= 1
-        for n in attObjects:
-            print(str(n.getName()))
+        at = attribute.attribute(temp, nameCtr - 1, atname)
+        attObjects.append(at)
+        
+        # To get attribute values from constraints:
+        # First loop into the main list, where you will access each sublist
+        # which each contain the two parts of a clause that are implicitly
+        # linked with an OR
+        # boolConstraints will house the attribute value
+        boolConstraints = []
+        for li in ProjectGui.user_constraints:
+            tmp = li[0][0:3]
+            if tmp == "NOT":
+                print("In Not conditional")
+                tmpAtt = li[0][4:]
+                tpl = self.findAttribute(attObjects, tmpAtt)
+                a = tpl[0]
+                # truthval = complement of the attribute's truth value, since NOT
+                if tpl[1] == False:
+                    print("false truth value in NOT conditional, change to True.")
+                    truthVal = True
+                elif tpl[1] == True:
+                    print("true truth value in NOT conditional, change to False.")
+                    truthVal = False
+                else:
+                    print("Error, unexpected truthVal")
+                print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + tmpAtt + " is tmpAtt, adding to boolConstraints")
+                boolConstraints.append(a)
+                boolConstraints.append(truthVal)
+            else:
+                tpl = self.findAttribute(attObjects, li[0])
+                a = tpl[0]
+                truthVal = tpl[1]
+                print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + li[0] + " is li[0], adding to boolConstraints")
+                boolConstraints.append(a)
+                boolConstraints.append(truthVal)
+                print("a is " + a.getName() + ", li[0] is " + li[0])
 
+            # now for 2nd element, seperate with OR.
+            boolConstraints.append("OR")
+            tmp = li[1][0:3]
+            if tmp == "NOT":
+                print("In NOT conditional")
+                tmpAtt = li[1][4:]
+                tpl = self.findAttribute(attObjects, tmpAtt)
+                a = tpl[0]
+                if tpl[1] == False:
+                    print("false truth value in NOT conditional, change to true")
+                    truthVal = True
+                elif tpl[1] == True:
+                    print("true truth value in NOT conditional, change to false")
+                    truthVal = False
+                else:
+                    print("unexpected truthVal, error.")
+                print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + tmpAtt + " is tmpAtt, adding to boolConstraints")
+                boolConstraints.append(a)
+                boolConstraints.append(truthVal)
+            else:
+                tpl = self.findAttribute(attObjects, li[1])
+                a = tpl[0]
+                truthVal = tpl[1]
+                print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + li[1] + " is li[1], adding to boolConstraints")
+                boolConstraints.append(a)
+                boolConstraints.append(truthVal)
+        for b in boolConstraints:
+            if type(b) == str or type(b) == int or type(b) == bool:
+                print(str(b))
+            else:
+                print(b.getName())
 
+        # Loop through all objects, compare each to all constraint elements, if they
+        # match, then it is feasible, otherwise it's not.
 
+        feasible = []
+        boolFlag = True
+        print(str(len(ProjectGui.allObjects)))
+        for x in ProjectGui.allObjects:
+            temp = []
+            boolCtr = 0
+            print("In outer loop")
+            for y in boolConstraints:
+                print("In inner loop")
+                if boolFlag == False:
+                    print("boolFlag is false, breaking out of inner loop")
+                    break
+                if boolCtr == 2:
+                    print("BoolCtr is 2, calling logicCompare.")
+                    print("temp is")
+                    print(temp)
+                    # Compare constraints to object
+                    boolFlag = self.logicCompare(temp, x)
+                    boolCtr = 0
+                    temp = []
+                else:
+                    print("boolCtr isn't 2, checking if type - " + str(type(y)) + " is equal to bool")
+                    if type(y) == bool:
+                        print("Type was bool, incrementing boolCtr from " + str(boolCtr) + ", to " + str(boolCtr + 1) + " and appending y")
+                        boolCtr += 1
+                        temp.append(y)
+                    else:
+                        if type(y) == str:
+                            print(y + " isn't a bool object, just appending")
+                        else:
+                            print(y.getName() + " isn't a bool object, just appending")
+                        temp.append(y)
+            print("Made it through inner loop, checking if boolFlag is still True")
+            if boolFlag == True:
+                print("it was, adding x and its index to feasible")
+                feasible.append(x)
+                feasible.append(ProjectGui.allObjects.index(x))
+        print(feasible)
+
+                        
+    def logicCompare(self, constraints, obj):
+        index = constraints[0].getIndex()
+        val = constraints[1]
+        print("In logicCompare. index is " + str(index) + ", val is " + str(val))
+        print("Comparing " + str(obj[index]) + " to " + str(val))
+        if str(obj[index]) == str(val):
+            print("It was true, returning true")
+            return True
+        else:
+            print("It was false, checking next clause")
+            # first clause is false, check 2nd, since it's an OR
+            index = constraints[3].getIndex()
+            val = constraints[4]
+            print("in next clause, index is " + str(index) + ", val is " + str(val))
+            print("Comparing " + str(obj[index]) + " to " + str(val))
+            if str(obj[index]) == str(val):
+                print("It was true, returning true.")
+                return True
+            else:
+                print("2nd clause was also false, returning false")
+                return False
+
+    def findAttribute(self, attObjects, name):
+        # reverse lookup an attribute based on one of their values.
+        print("Finding attribute:")
+        for a in attObjects:
+            val = a.searchVal(name)
+            if val == -1:
+                print(name + " is not in " + str(a.getName()) + "going to next")
+                next
+            else:
+                print("findAttribute either returned false or true, returning " + a.getName())
+                
+                return (a, val)
+        # If couldn't find attribute, return -1
+        print("Couldn't find the attribute, returning -1.")
+        return -1
 
     def exemp(self):
         print("exemp called!")
@@ -268,7 +440,6 @@ class ProjectGui:
     def parseConstraints(self):
         fName = self.fname.get()
         self.fname_entry.delete(0, END)
-        constraints = []
         cur_path = os.path.dirname(__file__)
         filePath = os.path.join(cur_path, '..', 'TestCase', fName)
         print("successfully reached parseConstraints, path is" + str(filePath))
@@ -277,7 +448,8 @@ class ProjectGui:
             for line in infile:
                 rawConstraints = []
                 rawConstraints = line.split("OR")
-                ProjectGui.user_constraints.append(rawConstraints)
+                constraints = [s.strip() for s in rawConstraints]
+                ProjectGui.user_constraints.append(constraints)
 
         print(ProjectGui.user_constraints)
 
@@ -411,11 +583,11 @@ class ProjectGui:
             if ProjectGui.user_attributes.index(a) % 3 == 0:
                 category_counter += 1
         print("Number of attributes: " + str(category_counter))
-        print("Using itertools to build out all combinations.")
+        #print("Using itertools to build out all combinations.")
         
         combinations = [seq for seq in itertools.product((True, False), repeat = category_counter)]
-        print("Combinations generated, now printing: \n")
-        print(combinations)
+        #print("Combinations generated, now printing: \n")
+        #print(combinations)
         #Can use itertools.product to yield a list of tuples with all the binary combos needed. Then I can map them to each object created.
 
         ProjectGui.allObjects = combinations
