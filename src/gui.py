@@ -6,6 +6,7 @@ import fnmatch
 import itertools
 import attribute
 import driver
+import random
 
 sys.path.append("..")
 class ProjectGui:
@@ -16,6 +17,7 @@ class ProjectGui:
     penalty_preferences = []
     possi_preferences = []
     quali_preferences = []
+    feasible_objects = []
 
     def createinstance(self):
         print("createinstance invoked!")
@@ -243,6 +245,7 @@ class ProjectGui:
                     #print("true truth value in NOT conditional, change to False.")
                     truthVal = False
                 else:
+                    pass
                     #print("Error, unexpected truthVal")
                 #print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + tmpAtt + " is tmpAtt, adding to boolConstraints")
                 boolConstraints.append(a)
@@ -271,6 +274,7 @@ class ProjectGui:
                     #print("true truth value in NOT conditional, change to false")
                     truthVal = False
                 else:
+                    pass
                     #print("unexpected truthVal, error.")
                 #print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + tmpAtt + " is tmpAtt, adding to boolConstraints")
                 boolConstraints.append(a)
@@ -341,6 +345,8 @@ class ProjectGui:
         #print(feasible)
         #print(new_feasible)
 
+        ProjectGui.feasible_objects = new_feasible
+
         print("Feasible:")
         listTemp = ""
         for item in new_feasible:
@@ -402,12 +408,158 @@ class ProjectGui:
         print("exemp called!")
         # exemplification means to generate two random feasible objects, and
         # then display the preference relationship between the two objects.
+        # First need to randomly select two feasible objects from the list.
+        # Then need to look at all the preferences to see what relationship exists between them
+
+        if len(ProjectGui.feasible_objects) == 0:
+            #Not enough feasible objects, exemp impossible
+            print("Impossible to generate 2 feasible objects")
+        else:
+
+            random_num1 = random.randint(0, len(ProjectGui.feasible_objects) - 1)
+            random_num2 = random.randint(0, len(ProjectGui.feasible_objects) - 1)
+            #print(ProjectGui.feasible_objects)
+            rand_feasible1 = ProjectGui.feasible_objects[random_num1]
+            rand_feasible2 = ProjectGui.feasible_objects[random_num2]
+            while type(rand_feasible1) == int or type(rand_feasible2) == int or rand_feasible1 == rand_feasible2:
+                rand_num = random.randint(0, len(ProjectGui.feasible_objects))
+                if type(rand_feasible1) == int:
+                    rand_feasible1 = ProjectGui.feasible_objects[rand_num]
+                else:
+                    rand_feasible2 = ProjectGui.feasible_objects[rand_num]
+            print("Random feasible object # 1 generated: ")
+            print(rand_feasible1)
+
+            print("Random feasible object # 2 generated: ")
+            print(rand_feasible2)
+
+            print("Penalty Logic \n")
+            print(ProjectGui.penalty_preferences)
+            print("Possibility Logic \n")
+            print(ProjectGui.possi_preferences)
+            print("Qualitative Choice Logic \n")
+            print(ProjectGui.quali_preferences)
+
+            # Now I can start comparing preference info to the
+            # Two objects and see which gets better scores
+            feas1_penalty_score = 0
+            feas1_possi_score = 0.0
+            feas2_penalty_score = 0
+            feas2_possi_score = 0.0
+            feas1_true = False
+            feas2_true = False
+            andOperator = False
+            #Penalty Logic
+            for p in ProjectGui.penalty_preferences:
+                if "AND" in p[0]:
+                    print("AND detected, splitting with AND")
+                    splitList = p[0].split("AND")
+                    print(splitList)
+                    andOperator = True
+                else:
+                    print("OR detected, splitting with OR")
+                    splitList = p[0].split("OR")
+                    print(splitList)
+                    andOperator = False
+                literal1 = splitList[0].strip()
+                literal2 = splitList[1].strip()
+                if andOperator:
+                    print("AND operator detected")
+                    if literal1 in rand_feasible1 and literal2 in rand_feasible1:
+                        feas1_true = True
+                    if literal1 in rand_feasible2 and literal2 in rand_feasible2:
+                        feas2_true = True
+                else:
+                    print("OR operator detected")
+                    if literal1 in rand_feasible1 or literal2 in rand_feasible1:
+                        feas1_true = True
+                    if literal1 in rand_feasible2 or literal2 in rand_feasible2:
+                        feas2_true = True
+                if feas1_true == False:
+                    feas1_penalty_score += int(p[1])
+                if feas2_true == False:
+                    feas2_penalty_score += int(p[1])
+            print("End of penalty logic:")
+            print("feas1 penalty score: " + str(feas1_penalty_score))
+            print("feas2 penalty score: " + str(feas2_penalty_score))
+
+
+            # Possibilistic Logic
+            for p in ProjectGui.possi_preferences:
+                if "AND" in p[0]:
+                    print("AND detected, splitting with AND")
+                    splitList = p[0].split("AND")
+                    print(splitList)
+                    andOperator = True
+                else:
+                    print("OR detected, splitting with OR")
+                    splitList = p[0].split("OR")
+                    print(splitList)
+                    andOperator = False
+                literal1 = splitList[0].strip()
+                literal2 = splitList[1].strip()
+                if andOperator:
+                    print("AND operator detected")
+                    if literal1 in rand_feasible1 and literal2 in rand_feasible1:
+                            feas1_true = True
+                    if literal1 in rand_feasible2 and literal2 in rand_feasible2:
+                            feas2_true = True
+                else:
+                    print("OR operator detected")
+                    if literal1 in rand_feasible1 or literal2 in rand_feasible1:
+                        feas1_true = True
+                    if literal1 in rand_feasible2 or literal2 in rand_feasible2:
+                        feas2_true = True
+                if feas1_true == False:
+                    feas1_possi_score = 1.0 - float(p[1])
+                if feas2_true == False:
+                    feas2_possi_score = 1.0 - float(p[1])
+            print("End of possibilistic logic:")
+            print("feas1 possibilistic score: " + str(feas1_possi_score))
+            print("feas2 possibilistic score: " + str(feas2_possi_score))
+
+            """
+            # Qualitative Choice Logic
+            qualList = []
+            preferredList1 = []
+            preferredList2 = []
+            for p in ProjectGui.quali_preferences:
+                for x in p:
+                    qualList.append[x]
+                #now all parts of first clause is gathered.
+                print(qualList[-1])
+                if qualList[-1] == "IF":
+                    #Last element is if, so applies to all.
+                    for q in qualList:
+                        if q in rand_feasible1:
+                            preferredList1.append(q)
+                        if q in rand_feasible2:
+                            preferredList2.append(q)
+                else:
+                    pass
+            """
+
+
+
+
+
+
 
     def optimize(self):
         print("optimize called!")
         # optimize is two buttons in one. So first need to get user input to see
         # if user wants to just optimize, that is, find one optimal Object, or
         # if user wants to omni-optimize, which means finding ALL optimal objects.
+        self.createInstanceTextVar.set("Omnioptimization")
+        self.createInstanceBtn.configure(command = self.omniopt)
+        self.createInstanceBtn.grid(row=3, column=1, sticky = (W,E))
+        self.optimizeButton.configure(text='Optimization', command=self.opt)
+
+    def omniopt(self):
+        pass
+
+    def opt(self):
+        pass
 
     #create initial frame and set up grid, to then create and place buttons within
     def __init__(self):
