@@ -559,7 +559,59 @@ class ProjectGui:
         pass
 
     def opt(self):
-        pass
+        # penalty logic
+        print(ProjectGui.feasible_objects)
+        optimal_objects = []
+        penalty_scores = []
+        for obj in ProjectGui.feasible_objects:
+            if type(obj) == int:
+                continue
+            score = 0
+            boolFlag = False
+            andOperator = False
+            for item in ProjectGui.penalty_preferences:
+                if "AND" in item[0]:
+                    print("AND detected, splitting with AND")
+                    splitList = item[0].split("AND")
+                    print(splitList)
+                    andOperator = True
+                else:
+                    print("OR detected, splitting with OR")
+                    splitList = item[0].split("OR")
+                    print(splitList)
+                    andOperator = False
+                literal1 = splitList[0].strip()
+                literal2 = splitList[1].strip()
+                if andOperator:
+                    print("AND operator detected")
+                    if literal1 in obj and literal2 in obj:
+                        boolFlag = True
+                else:
+                    print("OR operator detected")
+                    if literal1 in obj or literal2 in obj:
+                        boolFlag = True
+                if boolFlag == False:
+                    score += int(item[1])
+            penalty_scores.append(score)
+
+        index = 0
+        tmp = 0
+        indexCtr = 0
+        for n in penalty_scores:
+            indexCtr += 1
+            if n < tmp:
+                tmp = n
+                index = indexCtr
+
+
+        print("Penalty Optimal:")
+        print("o" + str(index - 1) + " with " + str(tmp) + " penalty")
+
+
+
+
+
+
 
     #create initial frame and set up grid, to then create and place buttons within
     def __init__(self):
