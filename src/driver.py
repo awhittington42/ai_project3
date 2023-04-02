@@ -1,6 +1,6 @@
 import gui
-from pysat.formula import CNF
-from pysat.solvers import Solver
+#from pysat.formula import CNF
+#from pysat.solvers import Solver
 
 def main():
     initialGUI = gui.ProjectGui()

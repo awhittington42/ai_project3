@@ -180,11 +180,11 @@ class ProjectGui:
 
 
     def quitgui():
-        print("quitgui called!")
+        #print("quitgui called!")
         sys.exit(0)
 
     def existence(self):
-        print("existence called!")
+        #print("existence called!")
         """
         # existence means figure out what objects out of all possible combos satisfy
         # the constraints.
@@ -193,7 +193,7 @@ class ProjectGui:
         # Raw idea: Go through the object list, and assign the truth value of each
         # tuple index to their respective attribute type. So in this 3 attribute
         # example, we have dissert correspond to first tuple index, drink will be
-        the 2nd tuple index, and main will be the third. Go through each tuple and 
+        the 2nd tuple index, and main will be the third. Go through each tuple and
         build out a comparison between the truth values of each attribute, and the
         constraints. This means the program will need to recognize attribute names
         and that a NOT in front of that attribute means False essentially.
@@ -208,21 +208,20 @@ class ProjectGui:
             if ctr == 2:
                 at = attribute.attribute(temp, nameCtr - 1, atname)
                 temp = []
-                print("Appending " + atname)
+                #print("Appending " + atname)
                 attObjects.append(at)
-                #TODO attObjects is cutting off the last attribute, need to fix.
                 atname = ""
                 ctr = 0
             if ProjectGui.user_attributes.index(a) % 3 == 0:
                 atname += str(a)
                 nameCtr += 1
             else:
-                print("Appending " + str(a) + " to temp")
+                #print("Appending " + str(a) + " to temp")
                 temp.append(a)
                 ctr+= 1
         at = attribute.attribute(temp, nameCtr - 1, atname)
         attObjects.append(at)
-        
+
         # To get attribute values from constraints:
         # First loop into the main list, where you will access each sublist
         # which each contain the two parts of a clause that are implicitly
@@ -232,142 +231,171 @@ class ProjectGui:
         for li in ProjectGui.user_constraints:
             tmp = li[0][0:3]
             if tmp == "NOT":
-                print("In Not conditional")
+                #print("In Not conditional")
                 tmpAtt = li[0][4:]
                 tpl = self.findAttribute(attObjects, tmpAtt)
                 a = tpl[0]
                 # truthval = complement of the attribute's truth value, since NOT
                 if tpl[1] == False:
-                    print("false truth value in NOT conditional, change to True.")
+                    #print("false truth value in NOT conditional, change to True.")
                     truthVal = True
                 elif tpl[1] == True:
-                    print("true truth value in NOT conditional, change to False.")
+                    #print("true truth value in NOT conditional, change to False.")
                     truthVal = False
                 else:
-                    print("Error, unexpected truthVal")
-                print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + tmpAtt + " is tmpAtt, adding to boolConstraints")
+                    #print("Error, unexpected truthVal")
+                #print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + tmpAtt + " is tmpAtt, adding to boolConstraints")
                 boolConstraints.append(a)
                 boolConstraints.append(truthVal)
             else:
                 tpl = self.findAttribute(attObjects, li[0])
                 a = tpl[0]
                 truthVal = tpl[1]
-                print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + li[0] + " is li[0], adding to boolConstraints")
+                #print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + li[0] + " is li[0], adding to boolConstraints")
                 boolConstraints.append(a)
                 boolConstraints.append(truthVal)
-                print("a is " + a.getName() + ", li[0] is " + li[0])
+                #print("a is " + a.getName() + ", li[0] is " + li[0])
 
             # now for 2nd element, seperate with OR.
             boolConstraints.append("OR")
             tmp = li[1][0:3]
             if tmp == "NOT":
-                print("In NOT conditional")
+                #print("In NOT conditional")
                 tmpAtt = li[1][4:]
                 tpl = self.findAttribute(attObjects, tmpAtt)
                 a = tpl[0]
                 if tpl[1] == False:
-                    print("false truth value in NOT conditional, change to true")
+                    #print("false truth value in NOT conditional, change to true")
                     truthVal = True
                 elif tpl[1] == True:
-                    print("true truth value in NOT conditional, change to false")
+                    #print("true truth value in NOT conditional, change to false")
                     truthVal = False
                 else:
-                    print("unexpected truthVal, error.")
-                print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + tmpAtt + " is tmpAtt, adding to boolConstraints")
+                    #print("unexpected truthVal, error.")
+                #print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + tmpAtt + " is tmpAtt, adding to boolConstraints")
                 boolConstraints.append(a)
                 boolConstraints.append(truthVal)
             else:
                 tpl = self.findAttribute(attObjects, li[1])
                 a = tpl[0]
                 truthVal = tpl[1]
-                print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + li[1] + " is li[1], adding to boolConstraints")
+                #print(a.getName() + " is attribute, " + str(truthVal) + " is truthVal, " + li[1] + " is li[1], adding to boolConstraints")
                 boolConstraints.append(a)
                 boolConstraints.append(truthVal)
-        for b in boolConstraints:
-            if type(b) == str or type(b) == int or type(b) == bool:
-                print(str(b))
-            else:
-                print(b.getName())
 
         # Loop through all objects, compare each to all constraint elements, if they
         # match, then it is feasible, otherwise it's not.
 
         feasible = []
-        boolFlag = True
-        print(str(len(ProjectGui.allObjects)))
+        #boolFlag = True
+        #print(str(len(ProjectGui.allObjects)))
         for x in ProjectGui.allObjects:
             temp = []
             boolCtr = 0
-            print("In outer loop")
+            boolFlag = True
+            #print("In outer loop")
             for y in boolConstraints:
-                print("In inner loop")
+                #print("In inner loop")
                 if boolFlag == False:
-                    print("boolFlag is false, breaking out of inner loop")
+                    #print("boolFlag is false, breaking out of inner loop")
                     break
-                if boolCtr == 2:
-                    print("BoolCtr is 2, calling logicCompare.")
-                    print("temp is")
-                    print(temp)
+                #print("checking if type - " + str(type(y)) + " is equal to bool")
+                if type(y) == bool:
+                    #print("Type was bool, incrementing boolCtr from " + str(boolCtr) + ", to " + str(boolCtr + 1) + " and appending y")
+                    boolCtr += 1
+                    temp.append(y)
+                else:
+                    temp.append(y)
+                if boolCtr ==2:
+                    #print("BoolCtr is 2, calling logicCompare.")
+                    #print("temp is")
+                    #print(temp)
                     # Compare constraints to object
                     boolFlag = self.logicCompare(temp, x)
                     boolCtr = 0
                     temp = []
-                else:
-                    print("boolCtr isn't 2, checking if type - " + str(type(y)) + " is equal to bool")
-                    if type(y) == bool:
-                        print("Type was bool, incrementing boolCtr from " + str(boolCtr) + ", to " + str(boolCtr + 1) + " and appending y")
-                        boolCtr += 1
-                        temp.append(y)
-                    else:
-                        if type(y) == str:
-                            print(y + " isn't a bool object, just appending")
-                        else:
-                            print(y.getName() + " isn't a bool object, just appending")
-                        temp.append(y)
-            print("Made it through inner loop, checking if boolFlag is still True")
+            #print("Made it through inner loop, checking if boolFlag is still True")
             if boolFlag == True:
-                print("it was, adding x and its index to feasible")
+                #print("it was, adding x and its index to feasible")
                 feasible.append(x)
                 feasible.append(ProjectGui.allObjects.index(x))
-        print(feasible)
 
-                        
+        #Have feasible, now just need to transform the list
+        #into the corresponding attribute truth values
+        new_feasible = []
+
+        for f in feasible:
+            temp = []
+            tmpInt = -1
+            for a in attObjects:
+                if type(f) == tuple:
+                    temp.append(a.getVal(f[a.getIndex()]))
+                else:
+                    tmpInt = f
+            if len(temp) > 0:
+                new_feasible.append(temp)
+            if tmpInt >= 0:
+                new_feasible.append(tmpInt)
+
+
+        #print(feasible)
+        #print(new_feasible)
+
+        print("Feasible:")
+        listTemp = ""
+        for item in new_feasible:
+            indexTemp = ""
+            if type(item) == list:
+                for x in item:
+                    #print(x)
+                    listTemp += x + " "
+                    #print("listTemp is " + listTemp)
+            if type(item) == int:
+                #print(str(item))
+                indexTemp +=str(item) + ": "
+                #print("indexTemp is " + indexTemp)
+                print("o" + indexTemp + listTemp)
+                listTemp = ""
+
+            #fullString = indexTemp + listTemp
+            #print(fullString)
+
     def logicCompare(self, constraints, obj):
         index = constraints[0].getIndex()
         val = constraints[1]
-        print("In logicCompare. index is " + str(index) + ", val is " + str(val))
-        print("Comparing " + str(obj[index]) + " to " + str(val))
+        #print("In logicCompare. index is " + str(index) + ", val is " + str(val))
+        #print("Comparing " + str(obj[index]) + " to " + str(val))
         if str(obj[index]) == str(val):
-            print("It was true, returning true")
+            #print("It was true, returning true")
             return True
         else:
-            print("It was false, checking next clause")
+            #print("It was false, checking next clause")
             # first clause is false, check 2nd, since it's an OR
             index = constraints[3].getIndex()
             val = constraints[4]
-            print("in next clause, index is " + str(index) + ", val is " + str(val))
-            print("Comparing " + str(obj[index]) + " to " + str(val))
+            #print("in next clause, index is " + str(index) + ", val is " + str(val))
+            #print("Comparing " + str(obj[index]) + " to " + str(val))
             if str(obj[index]) == str(val):
-                print("It was true, returning true.")
+                #print("It was true, returning true.")
                 return True
             else:
-                print("2nd clause was also false, returning false")
+                #print("2nd clause was also false, returning false")
                 return False
 
     def findAttribute(self, attObjects, name):
         # reverse lookup an attribute based on one of their values.
-        print("Finding attribute:")
+        #print("Finding attribute:")
         for a in attObjects:
             val = a.searchVal(name)
             if val == -1:
-                print(name + " is not in " + str(a.getName()) + "going to next")
+                #print(name + " is not in " + str(a.getName()) + "going to next")
                 next
             else:
-                print("findAttribute either returned false or true, returning " + a.getName())
-                
+                #print("findAttribute either returned false or true, returning " + a.getName())
+
                 return (a, val)
         # If couldn't find attribute, return -1
-        print("Couldn't find the attribute, returning -1.")
+        #print("Couldn't find the attribute, returning -1.")
         return -1
 
     def exemp(self):
@@ -400,7 +428,7 @@ class ProjectGui:
         cur_path = os.path.dirname(__file__)
         print(str(cur_path))
         filePath = os.path.join(cur_path, '..', 'TestCase', fName)
-        print("successfully reached parseAttributes, path is" + str(filePath))
+        #print("successfully reached parseAttributes, path is" + str(filePath))
         with open(filePath, "r") as infile:
             for line in infile:
                 rawAttributes = []
@@ -432,7 +460,7 @@ class ProjectGui:
                 nameCtr += 1
             ProjectGui.user_attributes.append(item)
 
-        print(ProjectGui.user_attributes)
+        #print(ProjectGui.user_attributes)
         self.createInstanceTextVar.set("Now Enter Constraints filename:")
         self.loadInstanceBtn.configure(command=self.parseConstraints)
         #self.loadInstanceBtn.grid(row=1, column=1, sticky=(W, E))
@@ -442,7 +470,7 @@ class ProjectGui:
         self.fname_entry.delete(0, END)
         cur_path = os.path.dirname(__file__)
         filePath = os.path.join(cur_path, '..', 'TestCase', fName)
-        print("successfully reached parseConstraints, path is" + str(filePath))
+        #print("successfully reached parseConstraints, path is" + str(filePath))
 
         with open(filePath, "r") as infile:
             for line in infile:
@@ -451,7 +479,7 @@ class ProjectGui:
                 constraints = [s.strip() for s in rawConstraints]
                 ProjectGui.user_constraints.append(constraints)
 
-        print(ProjectGui.user_constraints)
+        #print(ProjectGui.user_constraints)
 
         self.createInstanceTextVar.set("Now Enter Preferences filename:")
         self.loadInstanceBtn.configure(command=self.parsePreferences)
@@ -478,16 +506,16 @@ class ProjectGui:
             self.pref_type3.grid(row=3, column=1, sticky=(W, E))
 
     def preferenceType(self):
-        print("successfully reached parsePreferences")
+        #print("successfully reached parsePreferences")
         user_choice = self.choice.get()
         if user_choice == 1:
-            print("Penalty logic selected")
+            #print("Penalty logic selected")
             self.parsePenalty()
         elif user_choice == 2:
-            print("Possibilistic logic selected")
+            #print("Possibilistic logic selected")
             self.parsePossibilistic()
         elif user_choice == 3:
-            print("Qualitative choice logic selected")
+            #print("Qualitative choice logic selected")
             self.parseQualitative()
 
     def parsePenalty(self):
@@ -496,7 +524,7 @@ class ProjectGui:
 
         cur_path = os.path.dirname(__file__)
         filePath = os.path.join(cur_path, '..', 'TestCase', fName)
-        print("successfully reached parsePenalty, path is" + str(filePath))
+        #print("successfully reached parsePenalty, path is" + str(filePath))
         with open(filePath, "r") as infile:
             rawPenalty = []
             for line in infile:
@@ -515,7 +543,7 @@ class ProjectGui:
 
         cur_path = os.path.dirname(__file__)
         filePath = os.path.join(cur_path, '..', 'TestCase', fName)
-        print("successfully reached parsePossibilistic, path is" + str(filePath))
+        #print("successfully reached parsePossibilistic, path is" + str(filePath))
         with open(filePath, "r") as infile:
             rawPoss = []
             for line in infile:
@@ -534,7 +562,7 @@ class ProjectGui:
 
         cur_path = os.path.dirname(__file__)
         filePath = os.path.join(cur_path, '..', 'TestCase', fName)
-        print("successfully reached parseQualitative, path is" + str(filePath))
+        #print("successfully reached parseQualitative, path is" + str(filePath))
         with open(filePath, "r") as infile:
             rawQual = []
             for line in infile:
@@ -582,9 +610,9 @@ class ProjectGui:
         for a in ProjectGui.user_attributes:
             if ProjectGui.user_attributes.index(a) % 3 == 0:
                 category_counter += 1
-        print("Number of attributes: " + str(category_counter))
+        #print("Number of attributes: " + str(category_counter))
         #print("Using itertools to build out all combinations.")
-        
+
         combinations = [seq for seq in itertools.product((True, False), repeat = category_counter)]
         #print("Combinations generated, now printing: \n")
         #print(combinations)
