@@ -598,16 +598,77 @@ class ProjectGui:
         tmp = 0
         indexCtr = 0
         for n in penalty_scores:
-            indexCtr += 1
             if n < tmp:
-                tmp = n
                 index = indexCtr
+                tmp = n
+            indexCtr += 1
 
 
         print("Penalty Optimal:")
-        print("o" + str(index - 1) + " with " + str(tmp) + " penalty")
+        print("o" + str(index) + " with " + str(tmp) + " penalty")
 
+        possi_scores = []
+        boolFlag = False
+        # possibilistic
+        for obj in ProjectGui.feasible_objects:
+            if type(obj) == int:
+                continue
+            score = 0.0
+            andOperator = False
+            for item in ProjectGui.possi_preferences:
+                #print(item)
+                if "AND" in item[0]:
+                    #print("Item[0] = " + item[0])
+                    #print("AND detected, splitting with AND")
+                    splitList = item[0].split("AND")
+                    #print(splitList)
+                    andOperator = True
+                else:
+                    #print("OR detected, splitting with OR")
+                    splitList = item[0].split("OR")
+                    #print(splitList)
+                    andOperator = False
+                literal1 = splitList[0].strip()
+                literal2 = splitList[1].strip()
+                #print(literal1)
+                #print(literal2)
+                if andOperator:
+                    #print("AND operator detected")
+                    #print("Checking if " + literal1 + " and " + literal2 + " are in obj, " + str(obj))
+                    if literal1 in obj and literal2 in obj:
+                        #print("True, they are, setting boolFlag to True.")
+                        boolFlag = True
+                else:
+                    #print("OR operator detected")
+                    #print("Checking if " + literal1 + " or " + literal2 + " are in obj, " + str(obj))
+                    if literal1 in obj or literal2 in obj:
+                        #print("They were in, setting boolFlag to True.")
+                        boolFlag = True
+                #print("Checking if boolFlag is True")
+                if boolFlag == True:
+                    #print("boolFlag is true, updating score to 1.")
+                    score = 1
+                else:
+                    #print("boolFlag is False, setting score to 1 - " + str(item[1]))
+                    score = 1 - float(item[1])
+                #print("Appending score," + str(score) + " to possi_scores")
+                #print("possi_scores: ")
+                #print(possi_scores)
+                possi_scores.append(score)
+                #print("Setting boolFlag back to false and re-entering loop.")
+                boolFlag = False
 
+        index = 0
+        tmp = 0
+        indexCtr = 0
+        for n in possi_scores:
+            if n > tmp:
+                tmp = n
+                index = indexCtr
+            indexCtr += 1
+
+        print("Possibilistic Optimal:")
+        print("o" + str(index) + " with " + str(tmp) + " tolerance degree")
 
 
 
