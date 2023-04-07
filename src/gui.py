@@ -12,6 +12,7 @@ sys.path.append("..")
 class ProjectGui:
 
     allObjects = []
+    attribute_objects = []
     user_attributes = []
     user_constraints = []
     penalty_preferences = []
@@ -48,10 +49,15 @@ class ProjectGui:
         ProjectGui.possi_preferences = []
         ProjectGui.quali_preferences = []
 
+    def redirector(self, inputStr):
+        self.textbox.insert(INSERT, inputStr)
+
     def loadWidgets(self, root):
         self.mainframe = tk.Frame(self.root)
         self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
         self.createInstanceTextVar = StringVar(value ="Create Instance")
+        self.textbox = Text(self.mainframe)
+        self.textbox.grid(row=3, column=1)
         self.createInstanceBtn = tk.Button(self.mainframe, textvariable=self.createInstanceTextVar, command=self.createinstance)
         self.createInstanceBtn.grid(row=0, column=0, sticky=(W, E))
         self.loadInstanceTextVar = StringVar(value = "Load Instance")
@@ -223,7 +229,7 @@ class ProjectGui:
                 ctr+= 1
         at = attribute.attribute(temp, nameCtr - 1, atname)
         attObjects.append(at)
-
+        ProjectGui.attribute_objects = attObjects
         # To get attribute values from constraints:
         # First loop into the main list, where you will access each sublist
         # which each contain the two parts of a clause that are implicitly
@@ -422,7 +428,7 @@ class ProjectGui:
             rand_feasible1 = ProjectGui.feasible_objects[random_num1]
             rand_feasible2 = ProjectGui.feasible_objects[random_num2]
             while type(rand_feasible1) == int or type(rand_feasible2) == int or rand_feasible1 == rand_feasible2:
-                rand_num = random.randint(0, len(ProjectGui.feasible_objects))
+                rand_num = random.randint(0, len(ProjectGui.feasible_objects) - 1)
                 if type(rand_feasible1) == int:
                     rand_feasible1 = ProjectGui.feasible_objects[rand_num]
                 else:
@@ -450,6 +456,7 @@ class ProjectGui:
             feas2_true = False
             andOperator = False
             #Penalty Logic
+
             for p in ProjectGui.penalty_preferences:
                 if "AND" in p[0]:
                     print("AND detected, splitting with AND")
@@ -479,6 +486,62 @@ class ProjectGui:
                     feas1_penalty_score += int(p[1])
                 if feas2_true == False:
                     feas2_penalty_score += int(p[1])
+            """
+            # better method:
+
+            for p in ProjectGui.penalty_preferences:
+                print(p)
+                maxIndex = len(p)
+                opCounter = 0
+                i = 0
+                cur_p = p[i]
+                prev_p = p[i]
+                next_p = p[i]
+                literal1 = ""
+                literal2 = ""
+                while i < maxIndex:
+                    print(p[i])
+                    if p[i] == "AND":
+                        cur = p[i]
+                        if literal1 in rand_feasible1 and literal2 in rand_feasible1:
+                            feas1_true = True
+                        if literal1 in rand_feasible2 and literal2 in rand_feasible2:
+                            feas2_true = True
+                    elif type(p[i]) == int:
+                        if feas1_true == False:
+                            feas1_penalty_score += int(p[i])
+                        if feas2_true == False:
+                            feas2_penalty_score += int(p[i])
+                    elif p[i] == "OR":
+                        cur = p[i]
+                        if literal1 in rand_feasible1 or literal2 in rand_feasible1:
+                            feas1_true = True
+                        if literal1 in rand_feasible2 or literal2 in rand_feasible2:
+                            feas2_true = True
+                    if i > 0:
+                        prev_p = p[i-1]
+                        if i + 1 < maxIndex:
+                            next_p = p[i+1]
+                        if prev_p.strip() == "NOT":
+                            temp = self.findAttribute(ProjectGui.attribute_objects, str(p[i]).strip())[0]
+                            tempBool =  temp.searchVal(str(p[i]).strip())
+                            tempStr = str(temp.getVal(~tempBool)).strip()
+                            literal1 += tempStr
+                            print(literal1)
+                        elif next_p.strip() == "NOT":
+                            temp = self.findAttribute(ProjectGui.attribute_objects, str(p[i+2]).strip())[0]
+                            tempBool =  temp.searchVal(str(p[i+2]).strip())
+                            tempStr = str(temp.getVal(~tempBool)).strip()
+                            literal2 += tempStr
+                            print(literal2)
+                        i += 1
+                    else:
+                        i += 1
+            """
+
+
+
+
             print("End of penalty logic:")
             print("feas1 penalty score: " + str(feas1_penalty_score))
             print("feas2 penalty score: " + str(feas2_penalty_score))
@@ -681,6 +744,7 @@ class ProjectGui:
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         self.loadWidgets(self.root)
+        sys.stdout.write = self.redirector
         self.root.mainloop()
 
     def parseAttributes(self):
